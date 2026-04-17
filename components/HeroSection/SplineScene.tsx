@@ -4,20 +4,6 @@ import Script from 'next/script'
 
 const SPLINE_URL = 'https://prod.spline.design/yKiyLNcSIoAfwfMM/scene.splinecode'
 
-// TypeScript types for the custom element
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'spline-viewer': React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement> & {
-          url?: string
-          'loading-anim-type'?: string
-        },
-        HTMLElement
-      >
-    }
-  }
-}
 
 export default function SplineScene({ className }: { className?: string }) {
   return (
