@@ -1,12 +1,8 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
 import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { useGSAP } from '@gsap/react'
 import HeroSection from '@/components/HeroSection'
-
-gsap.registerPlugin(ScrollTrigger, useGSAP)
 
 const BG    = '#f0f0f0'
 const DARK  = '#1d1d1f'
@@ -25,54 +21,41 @@ const SP = {
 export default function Home() {
   const mainRef = useRef<HTMLElement>(null)
 
-  useGSAP(() => {
+  useEffect(() => {
     const root = mainRef.current
     if (!root) return
     const E = 'power3.out'
 
-    // ── Stagger groups (gs-section → gs-item children) ──────────────────
-    root.querySelectorAll<HTMLElement>('.gs-section').forEach((section) => {
-      const items = section.querySelectorAll<HTMLElement>('.gs-item')
-      if (!items.length) return
-      gsap.from(items, {
-        y: 44, opacity: 0, duration: 0.88, stagger: 0.13, ease: E,
-        scrollTrigger: { trigger: section, start: 'top 82%', once: true },
-      })
-    })
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return
+        const el = entry.target as HTMLElement
+        obs.unobserve(el)
 
-    // ── Slide from left ──────────────────────────────────────────────────
-    root.querySelectorAll<HTMLElement>('.gs-left').forEach((el) => {
-      gsap.from(el, {
-        x: -60, opacity: 0, duration: 1.05, ease: E,
-        scrollTrigger: { trigger: el, start: 'top 84%', once: true },
+        if (el.classList.contains('gs-section')) {
+          const items = el.querySelectorAll<HTMLElement>('.gs-item')
+          if (items.length) gsap.from(items, { y: 44, opacity: 0, duration: 0.88, stagger: 0.13, ease: E })
+        }
+        if (el.classList.contains('gs-left')) {
+          gsap.from(el, { x: -60, opacity: 0, duration: 1.05, ease: E })
+        }
+        if (el.classList.contains('gs-right')) {
+          gsap.from(el, { x: 60, opacity: 0, duration: 1.05, ease: E })
+        }
+        if (el.classList.contains('gs-scale')) {
+          gsap.from(el, { scale: 0.88, opacity: 0, duration: 0.65, ease: E })
+        }
+        if (el.classList.contains('gs-line')) {
+          gsap.from(el, { scaleX: 0, transformOrigin: 'left center', duration: 1.2, ease: E })
+        }
       })
-    })
+    }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' })
 
-    // ── Slide from right ─────────────────────────────────────────────────
-    root.querySelectorAll<HTMLElement>('.gs-right').forEach((el) => {
-      gsap.from(el, {
-        x: 60, opacity: 0, duration: 1.05, ease: E,
-        scrollTrigger: { trigger: el, start: 'top 84%', once: true },
-      })
-    })
+    root.querySelectorAll('.gs-section, .gs-left, .gs-right, .gs-scale, .gs-line')
+        .forEach(el => obs.observe(el))
 
-    // ── Scale + fade (color swatches) ────────────────────────────────────
-    root.querySelectorAll<HTMLElement>('.gs-scale').forEach((el, i) => {
-      gsap.from(el, {
-        scale: 0.88, opacity: 0, duration: 0.65, ease: E,
-        delay: i * 0.08,
-        scrollTrigger: { trigger: el, start: 'top 90%', once: true },
-      })
-    })
-
-    // ── Divider line reveal ──────────────────────────────────────────────
-    root.querySelectorAll<HTMLElement>('.gs-line').forEach((el) => {
-      gsap.from(el, {
-        scaleX: 0, transformOrigin: 'left center', duration: 1.2, ease: E,
-        scrollTrigger: { trigger: el, start: 'top 88%', once: true },
-      })
-    })
-  }, { scope: mainRef })
+    return () => obs.disconnect()
+  }, [])
 
   return (
     <main ref={mainRef} style={{ background: BG, color: DARK }}>

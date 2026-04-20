@@ -3,17 +3,13 @@
 import { useRef } from 'react'
 import dynamic from 'next/dynamic'
 import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
-import { useSmoothScroll } from '@/hooks/useSmoothScroll'
 
-gsap.registerPlugin(ScrollTrigger, useGSAP)
+gsap.registerPlugin(useGSAP)
 
 const SplineScene = dynamic(() => import('./SplineScene'), { ssr: false })
 
 export default function HeroSection() {
-  useSmoothScroll()
-
   const sectionRef   = useRef<HTMLElement>(null)
   const leftTextRef  = useRef<HTMLDivElement>(null)
   const rightTextRef = useRef<HTMLDivElement>(null)
@@ -24,6 +20,7 @@ export default function HeroSection() {
   const navRef       = useRef<HTMLElement>(null)
 
   useGSAP(() => {
+    // Entrance animation
     gsap.timeline({ defaults: { ease: 'power4.out' } })
       .from(navRef.current,       { y: -20, opacity: 0, duration: 0.7  }, 0.05)
       .from(leftWordRef.current,  { x: -70, opacity: 0, duration: 1.1  }, 0.2)
@@ -31,7 +28,7 @@ export default function HeroSection() {
       .from(ctaRef.current,       { y:  20, opacity: 0, duration: 0.8  }, 0.6)
       .from(bottomRef.current,    { y:  16, opacity: 0, duration: 0.7  }, 0.7)
 
-    // CTA: fade out in first 120px of scroll (native scroll listener — no Lenis lag)
+    // CTA: fade out on scroll (native listener — no Lenis lag)
     const handleScroll = () => {
       if (!ctaRef.current) return
       const opacity = Math.max(0, 1 - window.scrollY / 120)
@@ -40,17 +37,6 @@ export default function HeroSection() {
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-
-    gsap.to([leftTextRef.current, rightTextRef.current], {
-      y: -60, opacity: 0, ease: 'none',
-      scrollTrigger: {
-        trigger: sectionRef.current,
-        start: 'top top',
-        end: '40% top',
-        scrub: 1.4,
-      },
-    })
-
   }, { scope: sectionRef })
 
   return (
